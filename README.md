@@ -1,6 +1,6 @@
 # car--NumberOfPassengers
 차량탑승인원감지시스템(YOLOv5이용) 
-기여도: 40% DB(일부), YOLO, OCR, 센서값, 통신담당
+   기여도: 40% DB(일부), YOLO, OCR, 센서값, 통신담당
 
 구성 및 사용기술
 ![그림5](https://user-images.githubusercontent.com/63491788/125293094-0d082280-e35e-11eb-8c7a-151061451a60.png)
