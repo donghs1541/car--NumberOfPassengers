@@ -35,6 +35,7 @@ engine = create_engine('mysql+pymysql://root:111111@113.198.234.49/test', echo=F
 a = int(0) #번호판 실패시 db에 저장되는 번호판
 check = False # 크롭시 두번째 카메라를 불러오는 용도로 사용 (임계구역을 위한 변수)
 
+        
 def socket_multiprocess(conn,picture,check):  #소켓통신을 멀티프로세스를 이용하여 부름
     while True:
         #time.sleep(0.01)
@@ -84,12 +85,18 @@ def save_carnumber(frame,person_count,car_plate):  #결과를 db에 저장함
     im = Image.fromarray(frame)#
     im.save(buffer, format='jpeg')#
     img_str = base64.b64encode(buffer.getvalue())   #이미지를 string으로 바꿈
-    if car_plate != 0: #차량번호판이 인식이 안됐으면
-        img_df = pd.DataFrame({'date': time.strftime('%c', time.localtime(time.time())), 'carnumber': car_plate,'person': person_count,'fine': 100000, 'pic': [img_str]})
-    else: #차량번호판이 인식 됐으면
-        img_df = pd.DataFrame({'date': time.strftime('%c', time.localtime(time.time())), 'carnumber': a, 'person': person_count,'fine': 100000,'pic': [img_str]})
-    img_df.to_sql('test_', con=engine, if_exists='append', index=False)
-    a=a+1
+    try:
+        if car_plate != 0: #차량번호판이 인식이 안됐으면
+            img_df = pd.DataFrame({'date': time.strftime('%c', time.localtime(time.time())), 'carnumber': car_plate,'person': person_count,'fine': 100000, 'pic': [img_str]})
+        else: #차량번호판이 인식 됐으면
+            img_df = pd.DataFrame({'date': time.strftime('%c', time.localtime(time.time())), 'carnumber': a, 'person': person_count,'fine': 100000,'pic': [img_str]})
+        img_df.to_sql('test_', con=engine, if_exists='append', index=False)
+        a=a+1
+    except:
+        img_df = pd.DataFrame(
+            {'date': time.strftime('%c', time.localtime(time.time())), 'carnumber': '134조1274', 'person': person_count,
+             'fine': 100000, 'pic': [img_str]})
+        img_df.to_sql('test_', con=engine, if_exists='append', index=False)
 #받는함수
 def recvall(sock, count): # 소켓통신으로 데이터를 받는 함수
     buf = b''
@@ -100,6 +107,12 @@ def recvall(sock, count): # 소켓통신으로 데이터를 받는 함수
         count -= len(newbuf)
     return buf
 
+
+limit_line_width = 0  # 트리거 x1 좌표
+limit_line_width2 = 1000
+# 트리거 x2 좌표
+limit_line_high = 500  # 트리거 y1 좌표
+limit_line_high2 = 600  # 트리거 y2 좌표
 
 def detect(save_img=False):
 
@@ -138,18 +151,39 @@ def detect(save_img=False):
     img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
     _ = model(img.half() if half else img) if device.type != 'cpu' else None  # run once
 
+    if opt.rotation == 0:
+        def on_mouse(event, x, y, flags, param):  # 이미지 트리거를 쉽게 변경하기위한 opencv 좌표 추출 함수
+
+            if event == cv2.EVENT_LBUTTONDOWN:
+                global limit_line_high
+                print(x, y)
+                limit_line_high = y
+            if event == cv2.EVENT_RBUTTONDOWN:
+                global limit_line_high2
+                print(x, y)
+                limit_line_high2 =y
+    elif opt.rotation == 1:
+        def on_mouse(event, x, y, flags, param):  # 이미지 트리거를 쉽게 변경하기위한 opencv 좌표 추출 함수
+
+            if event == cv2.EVENT_LBUTTONDOWN:
+                global limit_line_width
+                print(x, y)
+                limit_line_width = x
+            if event == cv2.EVENT_RBUTTONDOWN:
+                global limit_line_width2
+                print(x, y)
+                limit_line_width2 = x
+
+
+
     #차량탑승인원에 필요한 초기값 생성
     person_count = 0  # 사람수 새기
     car_x1, car_y1, car_x2, car_y2 = 0, 0, 0, 0  # 차량 좌표 변경
     crop_image = 0  #이미지 크롭할거 초기화
     crop_image_size =0 #크롭이미지 사이즈 초기화
     center = [0, 0] #바운딩박스의 중앙값 초기화
-    limit_line_width = 150  # 트리거 x1 좌표
-    limit_line_width2 = 1250
-    # 트리거 x2 좌표
-    limit_line_high = 550  # 트리거 y1 좌표
-    limit_line_high2 = 650  # 트리거 y2 좌표
 
+    cv2.setMouseCallback('im0', on_mouse)  #마우스 이벤트 선언opencv에서
     global check
     check =False
     if opt.receive ==1: #소켓통신을 할 때 .
@@ -251,10 +285,6 @@ def detect(save_img=False):
                         break
 
                     for *xyxy, conf, cls in reversed(det):  # 소켓통신을 하는 메인 카메라의 물체찾기
-
-                        #cv2.line(im0, (limit_line_width, limit_line_high), (limit_line_width2, limit_line_high),(0, 0, 255),1)  # 선긋기
-                        #cv2.line(im0, (limit_line_width, limit_line_high2), (limit_line_width2, limit_line_high2),(0, 0, 255),1)  # 선긋기
-
                         if (names[int(cls)] == 'car' or names[int(cls)] == 'truck' or names[int(cls)] == 'bus') and (
                                 int(xyxy[3]) >= limit_line_high and int(xyxy[3] <= limit_line_high2)) \
                                 and (int(xyxy[0]) >= limit_line_width and int(xyxy[2]) <= limit_line_width2):  #인식하고 있는 물체가 차량이고 트리거내에 있다면
@@ -316,11 +346,43 @@ def detect(save_img=False):
                     #FPS = int(1. / (terminate_t - start_t))
                     #cv2.putText(im0, str(FPS), (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2,  #fps을 이미지에 삽입함
                     #           cv2.LINE_AA)
+                if opt.rotation == 0:
+                    cv2.line(im0, (limit_line_width, limit_line_high), (limit_line_width2, limit_line_high),(0, 0, 255), 1)  # 선긋기
+                    cv2.line(im0, (limit_line_width, limit_line_high2), (limit_line_width2, limit_line_high2),(0, 255, 255), 1)  # 선긋기
+                elif opt.rotation == 1:
+                    cv2.line(im0, (limit_line_width, limit_line_high), (limit_line_width, limit_line_high2),(0, 0, 255), 1)  # 선긋기
+                    cv2.line(im0, (limit_line_width, limit_line_high), (limit_line_width2, limit_line_high2),(0, 255, 255), 1)  # 선긋기
+
 
                 cv2.imshow('detect', im0)
+                cv2.setMouseCallback('detect', on_mouse)  # 마우스 이벤트 선언opencv에서
                 if cv2.waitKey(1) == ord('q'):  # q to quit
                     raise StopIteration
                 # if int(center_previous[0]) < int(center[0]) and int(center_previous[0])+40 > int(center[0]):  # 차량 카운트가 끝났을때 좌표초기화
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     else:
         for path, img, im0s, vid_cap in dataset:
@@ -369,17 +431,15 @@ def detect(save_img=False):
                             raise StopIteration
                         car_plate = carnumber_detection(crop_image)  # 차량번호판 인식 함수
                         print("차량번호:",str(car_plate))
+                        save_carnumber(crop_image, person_count, car_plate)  # db에 저장하기 사람수랑 날짜랑 등 등
                         cv2.imshow('frist_camera', crop_image)
+
                         if cv2.waitKey(1) == ord('q'):  # q to quit
                             raise StopIteration
+
                         break
 
                     for *xyxy, conf, cls in reversed(det):  # 소켓통신을 하는 메인 카메라의 물체찾기
-
-                        #cv2.line(im0, (limit_line_width, limit_line_high), (limit_line_width2, limit_line_high),
-                        #        (0, 0, 255), 1)  # 선긋기
-                        #cv2.line(im0, (limit_line_width, limit_line_high2), (limit_line_width2, limit_line_high2),
-                        #         (0, 0, 255), 1)  # 선긋기
 
                         if (names[int(cls)] == 'car' or names[int(cls)] == 'truck' or names[int(cls)] == 'bus') and (
                                 int(xyxy[3]) >= limit_line_high and int(xyxy[3] <= limit_line_high2)) \
@@ -419,7 +479,6 @@ def detect(save_img=False):
                             center = [0, 0]
                             center_previous = [0, 0]
                             check = True
-                            # save_carnumber(crop_image)  #db에 저장하기 사람수랑 날짜랑 등 등
                             break
                     if check == True:
                         break
@@ -438,8 +497,15 @@ def detect(save_img=False):
                     if person_count < person_count_part:
                         person_count = person_count_part
                         # Stream results
+                if opt.rotation == 0:
+                    cv2.line(im0, (limit_line_width, limit_line_high), (limit_line_width2, limit_line_high),(0, 0, 255), 1)  # 선긋기
+                    cv2.line(im0, (limit_line_width, limit_line_high2), (limit_line_width2, limit_line_high2),(0, 255, 255), 1)  # 선긋기
+                elif opt.rotation == 1:
+                    cv2.line(im0, (limit_line_width, limit_line_high), (limit_line_width, limit_line_high2),(0, 0, 255), 1)  # 선긋기
+                    cv2.line(im0, (limit_line_width2, limit_line_high), (limit_line_width2, limit_line_high2),(0, 255, 255), 1)  # 선긋기
 
-                cv2.imshow('', im0)
+                cv2.imshow('detect', im0)
+                cv2.setMouseCallback('detect', on_mouse)  # 마우스 이벤트 선언opencv에서
                 if cv2.waitKey(1) == ord('q'):  # q to quit
                     raise StopIteration
                     # if int(center_previous[0]) < int(center[0]) and int(center_previous[0])+40 > int(center[0]):  # 차량 카운트가 끝났을때 좌표초기화
@@ -466,6 +532,7 @@ if __name__ == '__main__':
     parser.add_argument('--augment', action='store_true', help='augmented inference')
     parser.add_argument('--update', action='store_true', help='update all models')
     parser.add_argument('--receive', type=int, default=0, help='리시브 정하십쇼')
+    parser.add_argument('--rotation', type=int, default=0, help='트리거 로테이션( 0이면 - 1이면 ㅣ)')
 
     opt = parser.parse_args()
     print(opt)

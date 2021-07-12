@@ -24,12 +24,12 @@
    </property>
    <property name="font">
     <font>
-     <family>Agency FB</family>
-     <pointsize>24</pointsize>
+     <family>한컴 고딕</family>
+     <pointsize>22</pointsize>
     </font>
    </property>
    <property name="text">
-    <string>주차장 관리 프로그램</string>
+    <string>불법 차량 관리</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -40,9 +40,15 @@
     <rect>
      <x>60</x>
      <y>400</y>
-     <width>51</width>
+     <width>71</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>차량번호</string>
@@ -92,6 +98,12 @@
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <property name="text">
     <string>벌금</string>
    </property>
@@ -108,6 +120,12 @@
      <height>23</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <property name="text">
     <string>검색</string>
    </property>
@@ -121,6 +139,12 @@
      <height>23</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <property name="text">
     <string>삭제</string>
    </property>
@@ -133,6 +157,12 @@
      <width>75</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>등록</string>
@@ -153,9 +183,15 @@
     <rect>
      <x>70</x>
      <y>180</y>
-     <width>56</width>
-     <height>12</height>
+     <width>71</width>
+     <height>20</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>차량번호</string>
@@ -169,6 +205,12 @@
      <width>75</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>수정</string>
@@ -218,6 +260,12 @@
      <width>75</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>한컴 고딕</family>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>갱신</string>

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>749</width>
-    <height>382</height>
+    <height>466</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,18 +18,18 @@
     <rect>
      <x>220</x>
      <y>50</y>
-     <width>301</width>
+     <width>341</width>
      <height>31</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <family>Agency FB</family>
+     <family>한컴 고딕</family>
      <pointsize>24</pointsize>
     </font>
    </property>
    <property name="text">
-    <string>불법 방해 행위 조회</string>
+    <string>다인승도로 이용자 조회</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

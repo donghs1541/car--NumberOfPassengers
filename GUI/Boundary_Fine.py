@@ -30,11 +30,12 @@ class Boundary_Fine(QDialog):
         sql = "select * from test_"
         cur.execute(sql)
         row = cur.fetchall()
-
         column_headers =  ['날짜', '차량번호','사람수','벌금','위반횟수']
         self.tableWidget.setColumnCount(len(column_headers))
         self.tableWidget.setRowCount(row.__len__())
         self.tableWidget.setHorizontalHeaderLabels(column_headers)
+
+
 
         for i in range(int(self.tableWidget.rowCount())):
             for j in range(int(self.tableWidget.columnCount())):
@@ -50,8 +51,6 @@ class Boundary_Fine(QDialog):
                 self.tableWidget.setItem(i,3,item1)
                 self.tableWidget.setItem(i,4,item2)
 
-        self.tableWidget.resizeColumnsToContents()
-        self.tableWidget.resizeRowsToContents()
         connect2.close()
 
     def update(self):
